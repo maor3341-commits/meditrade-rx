@@ -5,77 +5,103 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>מדי טרייד – הפקת מרשם לחתימת רופא</title>
 <style>
-  /* =========================================================
-     הגדרות – לעריכה ע"י מדי טרייד
-     ========================================================= */
   :root {
     --brand: #5b2a86;
     --brand-light: #efe7f6;
     --ink: #1d1d1f;
     --muted: #6b6b73;
     --line: #d9d6de;
+    --ok: #1f7a46;
+    --bad: #b3261e;
   }
   * { box-sizing: border-box; }
-  body {
-    margin: 0; font-family: Arial, "Segoe UI", sans-serif; color: var(--ink);
-    background: #f4f2f7;
-  }
+  body { margin: 0; font-family: Arial, "Segoe UI", sans-serif; color: var(--ink); background: #f4f2f7; }
   header.app {
     background: #fff; border-bottom: 3px solid var(--brand);
     padding: 12px 20px; display: flex; align-items: center; gap: 14px;
   }
-  header.app img { height: 38px; }
-  header.app h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  header.app img { height: 36px; }
+  header.app h1 { font-size: 17px; margin: 0; font-weight: 600; }
   main {
-    display: grid; grid-template-columns: minmax(320px, 460px) 1fr; gap: 24px;
-    padding: 24px; max-width: 1400px; margin: 0 auto; align-items: start;
+    display: grid; grid-template-columns: minmax(320px, 470px) minmax(0, 1fr); gap: 24px;
+    padding: 20px; max-width: 1400px; margin: 0 auto; align-items: start;
   }
-  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+  @media (max-width: 980px) { main { grid-template-columns: minmax(0, 1fr); padding: 12px; gap: 14px; } }
 
-  .panel { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
-  .panel h2 { font-size: 16px; margin: 0 0 12px; color: var(--brand); }
-  .panel + .panel { margin-top: 16px; }
+  /* --- הסבר בכניסה --- */
+  .intro { background: var(--brand); color: #fff; border-radius: 12px; padding: 16px 18px; margin-bottom: 16px; }
+  .intro p { margin: 0 0 10px; font-size: 15px; line-height: 1.5; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .steps li { background: rgba(255,255,255,.14); border-radius: 8px; padding: 8px 6px; text-align: center; font-size: 13px; line-height: 1.3; }
+  .steps b { display: block; font-size: 18px; margin-bottom: 2px; }
+  @media (max-width: 420px) { .steps { grid-template-columns: repeat(2, 1fr); } }
+
+  .panel { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .panel h2 { font-size: 16px; margin: 0 0 10px; color: var(--brand); }
+  .panel + .panel { margin-top: 14px; }
   label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
-  input, select, textarea {
-    width: 100%; padding: 9px 10px; font: inherit; font-size: 15px;
+  input, select {
+    width: 100%; padding: 10px; font: inherit; font-size: 16px; /* 16px מונע זום אוטומטי באייפון */
     border: 1px solid var(--line); border-radius: 8px; background: #fff;
   }
-  input:focus, select:focus { outline: 2px solid var(--brand-light); border-color: var(--brand); }
+  input:focus { outline: 2px solid var(--brand-light); border-color: var(--brand); }
+  input.invalid { border-color: var(--bad); }
   .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fielderr { color: var(--bad); font-size: 12px; min-height: 0; margin-top: 3px; }
+  .check { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: var(--ink); }
+  .check input { width: auto; }
+  .linkbtn { background: none; border: 0; color: var(--brand); text-decoration: underline; cursor: pointer; font: inherit; font-size: 13px; padding: 0; }
 
-  .item {
-    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin-bottom: 10px;
-    position: relative; background: #fcfbfd;
+  /* --- שורת מוצר --- */
+  .item { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin-bottom: 10px; position: relative; background: #fcfbfd; }
+  .item .remove { position: absolute; top: 4px; left: 8px; border: 0; background: none; color: var(--bad); font-size: 22px; cursor: pointer; line-height: 1; padding: 4px; }
+  .item label:first-of-type { margin-top: 2px; }
+  .combo { position: relative; }
+  .opts {
+    position: absolute; z-index: 20; top: 100%; right: 0; left: 0; margin: 2px 0 0; padding: 4px 0; list-style: none;
+    background: #fff; border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.12);
+    max-height: 260px; overflow: auto;
   }
-  .item .remove {
-    position: absolute; top: 6px; left: 8px; border: 0; background: none; color: #b3261e;
-    font-size: 20px; cursor: pointer; line-height: 1;
-  }
-  .item label { margin-top: 6px; }
+  .opts li { padding: 9px 12px; cursor: pointer; line-height: 1.35; }
+  .opts li:hover, .opts li.active { background: var(--brand-light); }
+  .opts li small { display: block; color: var(--muted); direction: ltr; text-align: right; }
+  .opts li.custom { border-top: 1px solid var(--line); color: var(--brand); }
+  .chosen { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .chosen bdi { direction: ltr; }
+  .qtyrow { display: grid; grid-template-columns: 130px 1fr; gap: 10px; }
+  .stepper { display: flex; align-items: stretch; }
+  .stepper button { width: 38px; border: 1px solid var(--line); background: #fff; font-size: 18px; cursor: pointer; color: var(--brand); }
+  .stepper button:first-child { border-radius: 0 8px 8px 0; }
+  .stepper button:last-child { border-radius: 8px 0 0 8px; }
+  .stepper input { border-radius: 0; text-align: center; border-left: 0; border-right: 0; padding: 10px 4px; }
+  .unit { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
   button.btn {
-    font: inherit; font-size: 15px; padding: 10px 16px; border-radius: 8px; cursor: pointer;
-    border: 1px solid var(--brand); background: #fff; color: var(--brand);
+    font: inherit; font-size: 15px; padding: 12px 16px; border-radius: 10px; cursor: pointer;
+    border: 1px solid var(--brand); background: #fff; color: var(--brand); width: 100%;
   }
-  button.btn.primary { background: var(--brand); color: #fff; }
+  button.btn.primary { background: var(--brand); color: #fff; font-size: 16px; font-weight: 600; }
   button.btn.wa { background: #1f9d55; border-color: #1f9d55; color: #fff; }
-  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  button.btn:disabled { opacity: .6; cursor: progress; }
+  .stack { display: grid; gap: 10px; }
+  .err { color: var(--bad); font-size: 14px; margin-top: 8px; }
   .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
-  .err { color: #b3261e; font-size: 13px; margin-top: 8px; min-height: 1em; }
+
+  .done { margin-top: 14px; border-top: 1px dashed var(--line); padding-top: 14px; }
+  .done .okmsg { color: var(--ok); font-weight: 600; margin-bottom: 10px; }
+  .done ol { margin: 12px 0; padding-inline-start: 20px; line-height: 1.7; font-size: 14px; }
 
   /* ===================== דף המרשם (A4) ===================== */
-  .preview-wrap { overflow: auto; }
+  .preview-title { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
+  .preview-wrap { overflow: hidden; }
   .sheet {
-    width: 210mm; min-height: 297mm; margin: 0 auto; background: #fff;
+    width: 210mm; height: 297mm; margin: 0 auto; background: #fff;
     padding: 18mm 20mm 14mm; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,.15);
-    display: flex; flex-direction: column; font-size: 11pt;
+    display: flex; flex-direction: column; font-size: 11pt; transform-origin: top right;
   }
   .sheet .top { display: flex; flex-direction: column; align-items: flex-start; }
   .sheet .logo { width: 62mm; }
-  .sheet .tagline {
-    font-family: "Brush Script MT", "Segoe Script", cursive; font-size: 17pt; color: #4b4b55;
-    margin-top: 4mm; direction: ltr; align-self: flex-start;
-  }
+  .sheet .tagline { font-family: "Brush Script MT", "Segoe Script", cursive; font-size: 17pt; color: #4b4b55; margin-top: 4mm; direction: ltr; }
   .sheet .date { margin-top: 10mm; font-weight: bold; align-self: flex-end; }
   .sheet .date span { display: inline-block; min-width: 32mm; border-bottom: 1px solid #000; text-align: center; font-weight: normal; }
   .sheet .to { margin-top: 10mm; line-height: 1.6; }
@@ -84,7 +110,7 @@
   .sheet .title { text-align: center; text-decoration: underline; font-size: 14pt; margin: 12mm 0 10mm; }
   .sheet table { width: 100%; border-collapse: collapse; }
   .sheet th, .sheet td { border: 1px solid #000; padding: 2mm 3mm; text-align: center; vertical-align: top; font-weight: normal; }
-  .sheet td.prod { direction: ltr; unicode-bidi: plaintext; }
+  .sheet td.prod { unicode-bidi: plaintext; }
   .sheet th:nth-child(1) { width: 38%; }
   .sheet th:nth-child(2) { width: 20%; }
   .sheet .sign { margin-top: 30mm; }
@@ -97,9 +123,10 @@
   @page { size: A4; margin: 0; }
   @media print {
     body { background: #fff; }
-    header.app, .form-col { display: none !important; }
+    header.app, .form-col, .preview-title { display: none !important; }
     main { display: block; padding: 0; margin: 0; max-width: none; }
-    .sheet { box-shadow: none; margin: 0; width: 210mm; height: 297mm; min-height: 0; }
+    .preview-wrap { height: auto !important; overflow: visible; }
+    .sheet { box-shadow: none; margin: 0; transform: none !important; }
   }
 </style>
 </head>
@@ -112,6 +139,16 @@
 
 <main>
   <div class="form-col">
+    <section class="intro">
+      <p>כאן מכינים בדקה את דף המרשם להזמנה ממדי טרייד. ממלאים פרטים ומוצרים, ומקבלים דף מוכן שרק צריך לחתום עליו.</p>
+      <ol class="steps">
+        <li><b>1</b>ממלאים פרטים ומוצרים</li>
+        <li><b>2</b>מפיקים PDF</li>
+        <li><b>3</b>מדפיסים, חותמים ומחתימים</li>
+        <li><b>4</b>שולחים לנו בוואטסאפ</li>
+      </ol>
+    </section>
+
     <section class="panel">
       <h2>1. פרטי הרופא</h2>
       <label for="docName">שם הרופא *</label>
@@ -119,149 +156,269 @@
       <div class="row2">
         <div>
           <label for="docLicense">מס' רישיון *</label>
-          <input id="docLicense" inputmode="numeric">
+          <input id="docLicense" inputmode="numeric" autocomplete="off">
         </div>
         <div>
           <label for="docId">מס' תעודת זהות *</label>
-          <input id="docId" inputmode="numeric" maxlength="9">
+          <input id="docId" inputmode="numeric" maxlength="9" autocomplete="off">
+          <div class="fielderr" id="idErr"></div>
         </div>
       </div>
       <label for="date">תאריך</label>
       <input id="date" type="date">
-      <div class="hint">אפשר להשאיר ריק – ייכתב קו למילוי ידני.</div>
+      <label class="check"><input type="checkbox" id="remember" checked> לזכור את הפרטים שלי במכשיר הזה</label>
+      <div class="hint" id="savedHint" hidden>
+        הפרטים נטענו מהפעם הקודמת. <button class="linkbtn" id="forget" type="button">לא אני / מחיקת הפרטים</button>
+      </div>
     </section>
 
     <section class="panel">
       <h2>2. מה צריך?</h2>
       <div id="items"></div>
       <button class="btn" id="addItem" type="button">+ הוספת מוצר</button>
-      <div class="hint">בחרו מהרשימה. אם המוצר לא מופיע – בחרו "מוצר אחר" והקלידו אותו.</div>
+      <div class="hint">מקלידים שם בעברית או באנגלית ובוחרים מהרשימה. מוצר שלא ברשימה ייכתב במרשם כפי שהוקלד.</div>
     </section>
 
     <section class="panel">
-      <h2>3. הפקה</h2>
-      <div class="actions">
-        <button class="btn primary" id="print" type="button">🖨️ הדפסה / שמירה כ-PDF</button>
-        <button class="btn wa" id="wa" type="button">שליחת הזמנה בוואטסאפ</button>
-      </div>
+      <h2>3. הפקת המרשם</h2>
+      <button class="btn primary" id="make" type="button">📄 הפקת המרשם (PDF)</button>
       <div class="err" id="err"></div>
-      <div class="hint">
-        אחרי ההדפסה: לחתום, להחתים בחותמת הרופא, ולשלוח את הדף החתום למדי טרייד.<br>
-        לשמירה כקובץ: בחלון ההדפסה בחרו "שמירה כ-PDF".
+
+      <div class="done" id="done" hidden>
+        <div class="okmsg">✅ המרשם מוכן</div>
+        <div class="stack">
+          <button class="btn primary" id="share" type="button">⬇️ הורדת ה-PDF</button>
+          <button class="btn" id="print" type="button">🖨️ הדפסה ישירה</button>
+        </div>
+        <ol>
+          <li>מדפיסים את הדף.</li>
+          <li>חותמים ומחתימים בחותמת הרופא.</li>
+          <li>מצלמים או סורקים את הדף החתום ושולחים לנו בוואטסאפ.</li>
+        </ol>
+        <button class="btn wa" id="wa" type="button">💬 שליחת ההזמנה למדי טרייד בוואטסאפ</button>
+        <div class="hint">ההודעה כוללת את פרטי ההזמנה ומספר אסמכתא. את הדף החתום מצרפים באותה שיחה.</div>
       </div>
     </section>
   </div>
 
-  <div class="preview-wrap">
-    <div class="sheet" id="sheet">
-      <div class="top">
-        <img class="logo" src="data:image/jpeg;base64,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" alt="Medi Trade International">
-        <div class="tagline">Home for aestheticians</div>
+  <div>
+    <p class="preview-title">תצוגה מקדימה של הדף</p>
+    <div class="preview-wrap" id="previewWrap">
+      <div class="sheet" id="sheet">
+        <div class="top">
+          <img class="logo" src="data:image/jpeg;base64,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" alt="Medi Trade International">
+          <div class="tagline">Home for aestheticians</div>
+        </div>
+        <div class="date">תאריך <span id="pDate"></span></div>
+
+        <div class="to">
+          <b>לכבוד: בית מרקחת</b>
+          <div class="f">שם רופא: <span id="pName"></span></div>
+          <div class="f">מס' רישיון: <span id="pLicense"></span></div>
+          <div class="f">מס' תעודת זהות: <span id="pId"></span></div>
+        </div>
+
+        <div class="title">מרשם</div>
+
+        <table>
+          <thead><tr><th>מוצר</th><th>כמות (יח')</th><th>הערות</th></tr></thead>
+          <tbody id="pRows"></tbody>
+        </table>
+
+        <div class="sign">חתימה + חותמת רופא<span></span></div>
+        <div class="clinic-only">התרופות הינן לשימוש המרפאה בלבד</div>
+
+        <div class="footer" id="pFooter"></div>
+        <div class="ref" id="pRef"></div>
       </div>
-      <div class="date">תאריך <span id="pDate"></span></div>
-
-      <div class="to">
-        <b>לכבוד: בית מרקחת</b>
-        <div class="f">שם רופא: <span id="pName"></span></div>
-        <div class="f">מס' רישיון: <span id="pLicense"></span></div>
-        <div class="f">מס' תעודת זהות: <span id="pId"></span></div>
-      </div>
-
-      <div class="title">מרשם</div>
-
-      <table>
-        <thead><tr><th>מוצר</th><th>כמות (יח')</th><th>הערות</th></tr></thead>
-        <tbody id="pRows"></tbody>
-      </table>
-
-      <div class="sign">חתימה + חותמת רופא<span></span></div>
-      <div class="clinic-only">התרופות הינן לשימוש המרפאה בלבד</div>
-
-      <div class="footer" id="pFooter"></div>
-      <div class="ref" id="pRef"></div>
     </div>
   </div>
 </main>
 
 <script>
 /* =========================================================
-   הגדרות – זה החלק היחיד שצריך לערוך
+   הגדרות – זה החלק שצריך לערוך
    ========================================================= */
 const CONFIG = {
-  // מספר הוואטסאפ של מדי טרייד בפורמט בינלאומי, בלי + ובלי מקפים (לדוגמה 972501234567)
+  // מספר הוואטסאפ של מדי טרייד בפורמט בינלאומי, בלי + ובלי מקפים
   whatsapp: "972544766606",
   footer: "אליהו איתן 34, א.ת.ח. ראשל\"צ / טלפון – 03-6504466 / פקס – 153-8-6827380",
   email: "Info@Meditrade-intl.com",
-  minRows: 3, // מספר שורות מינימלי בטבלה (שורות ריקות נשארות כמו בדף המקורי)
+  minRows: 3, // מספר שורות מינימלי בטבלה
 };
 
 // קטלוג מוצרים שדורשים מרשם.
-// id – מזהה קצר (משמש בקישור מוכן מראש), he – שם בעברית לחיפוש, rx – הטקסט שיופיע במרשם,
-// qty – כמות ברירת מחדל, note – הערה ברירת מחדל
+//  id    – מזהה קצר (לקישור מוכן מראש: ?p=lido:2,bicarb:1)
+//  he    – שם בעברית שהרופא רואה ומחפש
+//  rx    – הטקסט שנכתב במרשם
+//  pack  – גודל אריזה שנכתב בעמודת הכמות (למשל "100G" ייכתב "100G*1"). ריק = רק המספר
+//  unit  – הסבר לרופא מה זו יחידה אחת
+//  qty   – כמות ברירת מחדל
+//  note  – הערה ברירת מחדל
+//  keys  – מילות חיפוש נוספות
 const CATALOG = [
-  { id: "emla",   he: "משחת אלחוש (לידוקאין + פרילוקאין)", rx: "Lidocaine 18% + Prilocaine 5% ointment", qty: "100G*1", note: "פקק אדום בקופסה" },
-  { id: "lido",   he: "לידוקאין קרפולות",                     rx: "Lidocaine 2% 1:100000",                 qty: "1",      note: "" },
-  { id: "mepi",   he: "מפיבקאין קרפולות (ללא אדרנלין)",       rx: "Mepivacaine 3% ללא אדרנלין",           qty: "50amp*2", note: "" },
-  { id: "bicarb", he: "סודיום ביקרבונט",                      rx: "Sodium Bicarbonate 8.4% 100ml",         qty: "1",      note: "" },
+  { id: "emla",   he: "משחת אלחוש – לידוקאין + פרילוקאין", rx: "Lidocaine 18% + Prilocaine 5% ointment",
+    pack: "100G",  unit: "קופסה של 100 גרם",       qty: 1, note: "פקק אדום בקופסה", keys: "אלחוש משחה קרם הרדמה" },
+  { id: "lido",   he: "לידוקאין 2% עם אדרנלין – קרפולות",    rx: "Lidocaine 2% 1:100000",
+    pack: "",      unit: "אריזה",                   qty: 1, note: "",                keys: "לידוקאין קרפולות אדרנלין הרדמה" },
+  { id: "mepi",   he: "מפיבקאין 3% ללא אדרנלין – קרפולות",   rx: "Mepivacaine 3% ללא אדרנלין",
+    pack: "50amp", unit: "אריזה של 50 אמפולות",     qty: 2, note: "",                keys: "מפיבקאין קרפולות הרדמה" },
+  { id: "bicarb", he: "סודיום ביקרבונט 8.4%",                 rx: "Sodium Bicarbonate 8.4% 100ml",
+    pack: "",      unit: "בקבוק 100 מ\"ל",          qty: 1, note: "",                keys: "ביקרבונט סודה סודיום" },
 ];
 /* ========================================================= */
 
 const $ = (id) => document.getElementById(id);
 const itemsEl = $("items");
-const OTHER = "__other";
+const STORE_KEY = "meditrade_rx_doctor";
 
 function esc(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
+const norm = (s) => String(s).toLowerCase().replace(/["'״׳\-–]/g, " ").replace(/\s+/g, " ").trim();
 
+/* ---------- בדיקת תעודת זהות ישראלית (ספרת ביקורת) ---------- */
+function validIsraeliId(raw) {
+  const id = String(raw).trim();
+  if (!/^\d{5,9}$/.test(id)) return false;
+  const p = id.padStart(9, "0");
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    let d = Number(p[i]) * ((i % 2) + 1);
+    sum += d > 9 ? d - 9 : d;
+  }
+  return sum % 10 === 0;
+}
+function checkId(show) {
+  const v = $("docId").value.trim();
+  const ok = !v || validIsraeliId(v);
+  $("docId").classList.toggle("invalid", show && !ok);
+  $("idErr").textContent = show && !ok ? "מספר תעודת זהות לא תקין – כדאי לבדוק שוב" : "";
+  return v && ok;
+}
+
+/* ---------- שורת מוצר עם חיפוש ---------- */
 function addItem(pre = {}) {
   const div = document.createElement("div");
   div.className = "item";
   div.innerHTML = `
-    <button class="remove" type="button" title="הסרה">×</button>
+    <button class="remove" type="button" title="הסרת המוצר" aria-label="הסרת המוצר">×</button>
     <label>מוצר</label>
-    <select class="prod">
-      <option value="">— בחרו מוצר —</option>
-      ${CATALOG.map((p) => `<option value="${p.id}">${esc(p.he)} — ${esc(p.rx)}</option>`).join("")}
-      <option value="${OTHER}">מוצר אחר…</option>
-    </select>
-    <input class="custom" placeholder="שם המוצר כפי שיופיע במרשם" style="display:none;margin-top:6px">
-    <div class="row2">
-      <div><label>כמות</label><input class="qty"></div>
-      <div><label>הערות</label><input class="note"></div>
-    </div>`;
-  const sel = div.querySelector(".prod"), custom = div.querySelector(".custom"),
-        qty = div.querySelector(".qty"), note = div.querySelector(".note");
+    <div class="combo">
+      <input class="search" placeholder="התחילו להקליד, למשל: לידוקאין" autocomplete="off">
+      <ul class="opts" hidden></ul>
+    </div>
+    <div class="chosen"></div>
+    <div class="qtyrow">
+      <div>
+        <label>כמות</label>
+        <div class="stepper">
+          <button type="button" class="plus" aria-label="הוספה">+</button>
+          <input class="qty" type="number" inputmode="numeric" min="1" step="1" value="1">
+          <button type="button" class="minus" aria-label="הפחתה">−</button>
+        </div>
+      </div>
+      <div><label>הערות (לא חובה)</label><input class="note"></div>
+    </div>
+    <div class="unit"></div>`;
 
-  sel.addEventListener("change", () => {
-    const p = CATALOG.find((x) => x.id === sel.value);
-    custom.style.display = sel.value === OTHER ? "" : "none";
-    if (p) { qty.value = p.qty; note.value = p.note; }
-    render();
+  const search = div.querySelector(".search"), opts = div.querySelector(".opts"),
+        chosen = div.querySelector(".chosen"), qty = div.querySelector(".qty"),
+        note = div.querySelector(".note"), unit = div.querySelector(".unit");
+  div._sel = null; // {product} או {custom: "טקסט"}
+  let active = -1, list = [];
+
+  function select(sel) {
+    div._sel = sel;
+    if (sel && sel.product) {
+      const p = sel.product;
+      search.value = p.he;
+      qty.value = p.qty;
+      note.value = p.note;
+      chosen.innerHTML = `ייכתב במרשם: <bdi>${esc(p.rx)}</bdi>`;
+      unit.textContent = `יחידה אחת = ${p.unit}`;
+    } else if (sel && sel.custom) {
+      search.value = sel.custom;
+      chosen.textContent = "מוצר שלא ברשימה – ייכתב במרשם כפי שהוקלד";
+      unit.textContent = "";
+    } else {
+      chosen.textContent = ""; unit.textContent = "";
+    }
+    opts.hidden = true;
+    changed();
+  }
+
+  function showOpts() {
+    const q = norm(search.value);
+    list = CATALOG.filter((p) => !q || norm(p.he + " " + p.rx + " " + (p.keys || "")).includes(q))
+                  .map((p) => ({ product: p }));
+    if (q && !list.some((x) => norm(x.product.he) === q)) list.push({ custom: search.value.trim() });
+    active = -1;
+    opts.innerHTML = list.map((x, i) => x.product
+      ? `<li data-i="${i}">${esc(x.product.he)}<small>${esc(x.product.rx)}</small></li>`
+      : `<li data-i="${i}" class="custom">➕ מוצר אחר: "${esc(x.custom)}"</li>`).join("");
+    opts.hidden = !list.length;
+  }
+
+  search.addEventListener("focus", showOpts);
+  search.addEventListener("input", () => { div._sel = null; chosen.textContent = ""; unit.textContent = ""; showOpts(); changed(); });
+  search.addEventListener("keydown", (e) => {
+    if (opts.hidden) return;
+    const lis = opts.querySelectorAll("li");
+    if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      active = (active + (e.key === "ArrowDown" ? 1 : -1) + lis.length) % lis.length;
+      lis.forEach((li, i) => li.classList.toggle("active", i === active));
+    } else if (e.key === "Enter" && list.length) {
+      e.preventDefault(); select(list[active >= 0 ? active : 0]);
+    } else if (e.key === "Escape") { opts.hidden = true; }
   });
-  div.querySelector(".remove").addEventListener("click", () => { div.remove(); render(); });
-  [custom, qty, note].forEach((el) => el.addEventListener("input", render));
+  // mousedown ולא click – כדי שהבחירה תקרה לפני שהשדה מאבד פוקוס
+  opts.addEventListener("mousedown", (e) => {
+    const li = e.target.closest("li"); if (!li) return;
+    e.preventDefault(); select(list[Number(li.dataset.i)]);
+  });
+  search.addEventListener("blur", () => {
+    opts.hidden = true;
+    const t = search.value.trim();
+    if (!div._sel && t) {
+      const exact = CATALOG.find((p) => norm(p.he) === norm(t) || norm(p.rx) === norm(t));
+      select(exact ? { product: exact } : { custom: t });
+    }
+  });
 
+  div.querySelector(".plus").addEventListener("click", () => { qty.value = Math.max(1, (parseInt(qty.value) || 0) + 1); changed(); });
+  div.querySelector(".minus").addEventListener("click", () => { qty.value = Math.max(1, (parseInt(qty.value) || 1) - 1); changed(); });
+  div.querySelector(".remove").addEventListener("click", () => { div.remove(); changed(); });
+  [qty, note].forEach((el) => el.addEventListener("input", changed));
+
+  itemsEl.appendChild(div);
   if (pre.id) {
-    const known = CATALOG.some((p) => p.id === pre.id);
-    sel.value = known ? pre.id : OTHER;
-    sel.dispatchEvent(new Event("change"));
-    if (!known) custom.value = pre.id;
+    const p = CATALOG.find((x) => x.id === pre.id);
+    select(p ? { product: p } : { custom: pre.id });
     if (pre.qty) qty.value = pre.qty;
   }
-  itemsEl.appendChild(div);
-  render();
+  changed();
+  return div;
 }
 
 function getItems() {
   return [...itemsEl.querySelectorAll(".item")].map((d) => {
-    const v = d.querySelector(".prod").value;
-    const p = CATALOG.find((x) => x.id === v);
-    const name = v === OTHER ? d.querySelector(".custom").value.trim() : p ? p.rx : "";
-    return { id: v, name, qty: d.querySelector(".qty").value.trim(), note: d.querySelector(".note").value.trim() };
-  }).filter((i) => i.name);
+    const sel = d._sel, n = parseInt(d.querySelector(".qty").value) || 1;
+    if (!sel) return null;
+    const p = sel.product;
+    return {
+      name: p ? p.rx : sel.custom,
+      label: p ? p.he : sel.custom,
+      n,
+      qtyText: p && p.pack ? `${p.pack}*${n}` : String(n),
+      unit: p ? p.unit : "",
+      note: d.querySelector(".note").value.trim(),
+    };
+  }).filter(Boolean);
 }
 
+/* ---------- תצוגה ---------- */
 function fmtDate(v) {
   if (!v) return "";
   const [y, m, d] = v.split("-");
@@ -273,15 +430,52 @@ function render() {
   $("pLicense").textContent = $("docLicense").value;
   $("pId").textContent = $("docId").value;
   $("pDate").textContent = fmtDate($("date").value);
-
-  const items = getItems();
-  const rows = items.map((i) =>
-    `<tr><td class="prod">${esc(i.name)}</td><td>${esc(i.qty)}</td><td>${esc(i.note)}</td></tr>`);
+  const rows = getItems().map((i) =>
+    `<tr><td class="prod">${esc(i.name)}</td><td>${esc(i.qtyText)}</td><td>${esc(i.note)}</td></tr>`);
   while (rows.length < CONFIG.minRows) rows.push("<tr><td>&nbsp;</td><td></td><td></td></tr>");
   $("pRows").innerHTML = rows.join("");
-  $("err").textContent = "";
 }
 
+let pdfFile = null;
+function changed() {
+  render();
+  $("err").textContent = "";
+  // כל שינוי אחרי ההפקה מבטל את ה-PDF הישן, כדי שלא יישלח דף לא מעודכן
+  if (pdfFile) { pdfFile = null; $("done").hidden = true; }
+}
+
+function fitPreview() {
+  const wrap = $("previewWrap"), sheet = $("sheet");
+  sheet.style.transform = "";
+  const s = Math.min(1, wrap.clientWidth / sheet.offsetWidth);
+  sheet.style.transform = s < 1 ? `scale(${s})` : "";
+  wrap.style.height = sheet.offsetHeight * s + "px";
+}
+
+/* ---------- זכירת פרטי הרופא במכשיר ---------- */
+function loadDoctor() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+    if (!d) return;
+    $("docName").value = d.name || ""; $("docLicense").value = d.license || ""; $("docId").value = d.id || "";
+    $("savedHint").hidden = false;
+  } catch (e) {}
+}
+function saveDoctor() {
+  try {
+    if ($("remember").checked) {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        name: $("docName").value.trim(), license: $("docLicense").value.trim(), id: $("docId").value.trim() }));
+    } else localStorage.removeItem(STORE_KEY);
+  } catch (e) {}
+}
+$("forget").addEventListener("click", () => {
+  try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+  ["docName", "docLicense", "docId"].forEach((id) => ($(id).value = ""));
+  $("savedHint").hidden = true; checkId(false); changed(); $("docName").focus();
+});
+
+/* ---------- בדיקה לפני הפקה ---------- */
 function validate() {
   const missing = [];
   if (!$("docName").value.trim()) missing.push("שם הרופא");
@@ -289,53 +483,120 @@ function validate() {
   if (!$("docId").value.trim()) missing.push("תעודת זהות");
   if (!getItems().length) missing.push("לפחות מוצר אחד");
   if (missing.length) { $("err").textContent = "חסר: " + missing.join(", "); return false; }
+  if (!checkId(true)) { $("err").textContent = "מספר תעודת הזהות לא תקין"; $("docId").focus(); return false; }
   return true;
 }
 
-// מספר אסמכתא קצר, כדי שיהיה קל להתאים בין ההודעה בוואטסאפ לדף החתום
+/* ---------- הפקת PDF ---------- */
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) return res();
+    const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+}
+
+async function makePdf() {
+  await Promise.all([loadScript("lib/html2canvas.min.js"), loadScript("lib/jspdf.umd.min.js")]);
+  // מצלמים עותק בגודל מלא, בלי ההקטנה של תצוגת הטלפון
+  const clone = $("sheet").cloneNode(true);
+  clone.removeAttribute("id");
+  clone.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+  clone.style.transform = "none"; clone.style.boxShadow = "none"; clone.style.margin = "0";
+  const host = document.createElement("div");
+  host.style.cssText = "position:fixed;top:0;left:-3000px;direction:rtl;";
+  host.appendChild(clone); document.body.appendChild(host);
+  try {
+    const canvas = await html2canvas(clone, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
+    const pdf = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
+    pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
+    return pdf.output("blob");
+  } finally { host.remove(); }
+}
+
+function fileName() {
+  const name = $("docName").value.trim().replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-");
+  return `מרשם-מדי-טרייד-${name || "רופא"}-${REF}.pdf`;
+}
+
+$("make").addEventListener("click", async () => {
+  if (!validate()) return;
+  saveDoctor();
+  const btn = $("make"); btn.disabled = true; btn.textContent = "מכין את הקובץ…";
+  try {
+    const blob = await makePdf();
+    pdfFile = new File([blob], fileName(), { type: "application/pdf" });
+    const canShare = navigator.canShare && navigator.canShare({ files: [pdfFile] });
+    $("share").textContent = canShare ? "📤 שיתוף / שמירה של ה-PDF" : "⬇️ הורדת ה-PDF";
+    $("done").hidden = false;
+    $("done").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  } catch (e) {
+    console.error(e);
+    $("err").textContent = "לא הצלחנו ליצור PDF בדפדפן הזה. אפשר להשתמש ב'הדפסה' ולבחור 'שמירה כ-PDF'.";
+    $("done").hidden = false;
+  } finally { btn.disabled = false; btn.textContent = "📄 הפקת המרשם (PDF)"; }
+});
+
+function download(file) {
+  const url = URL.createObjectURL(file);
+  const a = document.createElement("a"); a.href = url; a.download = file.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+$("share").addEventListener("click", async () => {
+  if (!pdfFile) return;
+  if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+    try { await navigator.share({ files: [pdfFile], title: "מרשם – מדי טרייד" }); return; }
+    catch (e) { if (e.name === "AbortError") return; }
+  }
+  download(pdfFile);
+});
+
+$("print").addEventListener("click", () => window.print());
+
+/* ---------- וואטסאפ ---------- */
 const REF = "RX-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") + "-" +
             Math.random().toString(36).slice(2, 6).toUpperCase();
 
 function waText() {
-  const lines = [
-    `שלום, מצורפת הזמנה למרשם (${REF})`,
-    `רופא/ה: ${$("docName").value}`,
-    `מס' רישיון: ${$("docLicense").value}`,
+  return [
+    `שלום, הזמנה עם מרשם (${REF})`,
+    `רופא/ה: ${$("docName").value.trim()}`,
+    `מס' רישיון: ${$("docLicense").value.trim()}`,
     "",
-    ...getItems().map((i) => `• ${i.name} — כמות: ${i.qty || "-"}${i.note ? " (" + i.note + ")" : ""}`),
+    ...getItems().map((i) => `• ${i.label} — ${i.n}${i.unit ? " × " + i.unit : ""}${i.note ? " (" + i.note + ")" : ""}`),
     "",
-    "המרשם החתום יישלח בהמשך.",
-  ];
-  return lines.join("\n");
+    "מצרף/ת את המרשם החתום.",
+  ].join("\n");
 }
-
-$("print").addEventListener("click", () => { if (validate()) window.print(); });
 $("wa").addEventListener("click", () => {
-  if (!validate()) return;
-  const base = CONFIG.whatsapp ? `https://wa.me/${CONFIG.whatsapp}` : "https://wa.me/";
-  window.open(`${base}?text=${encodeURIComponent(waText())}`, "_blank");
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(waText())}`, "_blank");
 });
-$("addItem").addEventListener("click", () => addItem());
-["docName", "docLicense", "docId", "date"].forEach((id) => $(id).addEventListener("input", render));
 
-// פוטר
+/* ---------- אתחול ---------- */
+$("addItem").addEventListener("click", () => addItem().querySelector(".search").focus());
+["docName", "docLicense", "docId", "date"].forEach((id) => $(id).addEventListener("input", changed));
+$("docId").addEventListener("input", () => { $("docId").value = $("docId").value.replace(/\D/g, ""); checkId(false); });
+$("docId").addEventListener("blur", () => checkId(true));
+
 $("pFooter").innerHTML = `${esc(CONFIG.footer)}<br><a href="mailto:${esc(CONFIG.email)}">${esc(CONFIG.email)}</a>`;
 $("pRef").textContent = REF;
-
-// תאריך היום כברירת מחדל
 $("date").value = new Date().toISOString().slice(0, 10);
+loadDoctor();
 
-// קישור מוכן מראש: index.html?p=lido:2,bicarb:1  (מוצר:כמות, מופרד בפסיקים)
 const pre = new URLSearchParams(location.search).get("p");
 if (pre) {
   pre.split(",").forEach((tok) => {
-    const [id, qty] = tok.split(":");
-    if (id) addItem({ id: id.trim(), qty: qty && qty.trim() });
+    const [id, q] = tok.split(":");
+    if (id && id.trim()) addItem({ id: id.trim(), qty: q && parseInt(q) });
   });
-} else {
-  addItem();
-}
+} else addItem();
+
 render();
+fitPreview();
+window.addEventListener("resize", fitPreview);
+window.addEventListener("load", fitPreview);
 </script>
 </body>
 </html>
