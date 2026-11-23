@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>מדי טרייד – הפקת מרשם לחתימת רופא</title>
+<style>
+  /* =========================================================
+     הגדרות – לעריכה ע"י מדי טרייד
+     ========================================================= */
+  :root {
+    --brand: #5b2a86;
+    --brand-light: #efe7f6;
+    --ink: #1d1d1f;
+    --muted: #6b6b73;
+    --line: #d9d6de;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: Arial, "Segoe UI", sans-serif; color: var(--ink);
+    background: #f4f2f7;
+  }
+  header.app {
+    background: #fff; border-bottom: 3px solid var(--brand);
+    padding: 12px 20px; display: flex; align-items: center; gap: 14px;
+  }
+  header.app img { height: 38px; }
+  header.app h1 { font-size: 18px; margin: 0; font-weight: 600; }
+  main {
+    display: grid; grid-template-columns: minmax(320px, 460px) 1fr; gap: 24px;
+    padding: 24px; max-width: 1400px; margin: 0 auto; align-items: start;
+  }
+  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+
+  .panel { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+  .panel h2 { font-size: 16px; margin: 0 0 12px; color: var(--brand); }
+  .panel + .panel { margin-top: 16px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  input, select, textarea {
+    width: 100%; padding: 9px 10px; font: inherit; font-size: 15px;
+    border: 1px solid var(--line); border-radius: 8px; background: #fff;
+  }
+  input:focus, select:focus { outline: 2px solid var(--brand-light); border-color: var(--brand); }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  .item {
+    border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px 12px; margin-bottom: 10px;
+    position: relative; background: #fcfbfd;
+  }
+  .item .remove {
+    position: absolute; top: 6px; left: 8px; border: 0; background: none; color: #b3261e;
+    font-size: 20px; cursor: pointer; line-height: 1;
+  }
+  .item label { margin-top: 6px; }
+
+  button.btn {
+    font: inherit; font-size: 15px; padding: 10px 16px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--brand); background: #fff; color: var(--brand);
+  }
+  button.btn.primary { background: var(--brand); color: #fff; }
+  button.btn.wa { background: #1f9d55; border-color: #1f9d55; color: #fff; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 4px; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+  .err { color: #b3261e; font-size: 13px; margin-top: 8px; min-height: 1em; }
+
+  /* ===================== דף המרשם (A4) ===================== */
+  .preview-wrap { overflow: auto; }
+  .sheet {
+    width: 210mm; min-height: 297mm; margin: 0 auto; background: #fff;
+    padding: 18mm 20mm 14mm; position: relative; box-shadow: 0 2px 10px rgba(0,0,0,.15);
+    display: flex; flex-direction: column; font-size: 11pt;
+  }
+  .sheet .top { display: flex; flex-direction: column; align-items: flex-start; }
+  .sheet .logo { width: 62mm; }
+  .sheet .tagline {
+    font-family: "Brush Script MT", "Segoe Script", cursive; font-size: 17pt; color: #4b4b55;
+    margin-top: 4mm; direction: ltr; align-self: flex-start;
+  }
+  .sheet .date { margin-top: 10mm; font-weight: bold; align-self: flex-end; }
+  .sheet .date span { display: inline-block; min-width: 32mm; border-bottom: 1px solid #000; text-align: center; font-weight: normal; }
+  .sheet .to { margin-top: 10mm; line-height: 1.6; }
+  .sheet .to b { display: block; margin-bottom: 2mm; }
+  .sheet .to .f span { font-weight: bold; }
+  .sheet .title { text-align: center; text-decoration: underline; font-size: 14pt; margin: 12mm 0 10mm; }
+  .sheet table { width: 100%; border-collapse: collapse; }
+  .sheet th, .sheet td { border: 1px solid #000; padding: 2mm 3mm; text-align: center; vertical-align: top; font-weight: normal; }
+  .sheet td.prod { direction: ltr; unicode-bidi: plaintext; }
+  .sheet th:nth-child(1) { width: 38%; }
+  .sheet th:nth-child(2) { width: 20%; }
+  .sheet .sign { margin-top: 30mm; }
+  .sheet .sign span { display: inline-block; width: 60mm; border-bottom: 1px solid #000; }
+  .sheet .clinic-only { margin-top: 14mm; font-weight: bold; }
+  .sheet .footer { margin-top: auto; font-size: 8.5pt; font-weight: bold; text-align: right; line-height: 1.5; }
+  .sheet .footer a { color: #1a55c4; }
+  .sheet .ref { position: absolute; bottom: 8mm; left: 20mm; font-size: 7.5pt; color: #999; direction: ltr; }
+
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: #fff; }
+    header.app, .form-col { display: none !important; }
+    main { display: block; padding: 0; margin: 0; max-width: none; }
+    .sheet { box-shadow: none; margin: 0; width: 210mm; height: 297mm; min-height: 0; }
+  }
+</style>
+</head>
+<body>
+
+<header class="app">
+  <img src="data:image/jpeg;base64,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" alt="Medi Trade">
+  <h1>הפקת מרשם לחתימת רופא</h1>
+</header>
+
+<main>
+  <div class="form-col">
+    <section class="panel">
+      <h2>1. פרטי הרופא</h2>
+      <label for="docName">שם הרופא *</label>
+      <input id="docName" autocomplete="name" placeholder="ד״ר ישראל ישראלי">
+      <div class="row2">
+        <div>
+          <label for="docLicense">מס' רישיון *</label>
+          <input id="docLicense" inputmode="numeric">
+        </div>
+        <div>
+          <label for="docId">מס' תעודת זהות *</label>
+          <input id="docId" inputmode="numeric" maxlength="9">
+        </div>
+      </div>
+      <label for="date">תאריך</label>
+      <input id="date" type="date">
+      <div class="hint">אפשר להשאיר ריק – ייכתב קו למילוי ידני.</div>
+    </section>
+
+    <section class="panel">
+      <h2>2. מה צריך?</h2>
+      <div id="items"></div>
+      <button class="btn" id="addItem" type="button">+ הוספת מוצר</button>
+      <div class="hint">בחרו מהרשימה. אם המוצר לא מופיע – בחרו "מוצר אחר" והקלידו אותו.</div>
+    </section>
+
+    <section class="panel">
+      <h2>3. הפקה</h2>
+      <div class="actions">
+        <button class="btn primary" id="print" type="button">🖨️ הדפסה / שמירה כ-PDF</button>
+        <button class="btn wa" id="wa" type="button">שליחת הזמנה בוואטסאפ</button>
+      </div>
+      <div class="err" id="err"></div>
+      <div class="hint">
+        אחרי ההדפסה: לחתום, להחתים בחותמת הרופא, ולשלוח את הדף החתום למדי טרייד.<br>
+        לשמירה כקובץ: בחלון ההדפסה בחרו "שמירה כ-PDF".
+      </div>
+    </section>
+  </div>
+
+  <div class="preview-wrap">
+    <div class="sheet" id="sheet">
+      <div class="top">
+        <img class="logo" src="data:image/jpeg;base64,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" alt="Medi Trade International">
+        <div class="tagline">Home for aestheticians</div>
+      </div>
+      <div class="date">תאריך <span id="pDate"></span></div>
+
+      <div class="to">
+        <b>לכבוד: בית מרקחת</b>
+        <div class="f">שם רופא: <span id="pName"></span></div>
+        <div class="f">מס' רישיון: <span id="pLicense"></span></div>
+        <div class="f">מס' תעודת זהות: <span id="pId"></span></div>
+      </div>
+
+      <div class="title">מרשם</div>
+
+      <table>
+        <thead><tr><th>מוצר</th><th>כמות (יח')</th><th>הערות</th></tr></thead>
+        <tbody id="pRows"></tbody>
+      </table>
+
+      <div class="sign">חתימה + חותמת רופא<span></span></div>
+      <div class="clinic-only">התרופות הינן לשימוש המרפאה בלבד</div>
+
+      <div class="footer" id="pFooter"></div>
+      <div class="ref" id="pRef"></div>
+    </div>
+  </div>
+</main>
+
+<script>
+/* =========================================================
+   הגדרות – זה החלק היחיד שצריך לערוך
+   ========================================================= */
+const CONFIG = {
+  // מספר הוואטסאפ של מדי טרייד בפורמט בינלאומי, בלי + ובלי מקפים (לדוגמה 972501234567)
+  whatsapp: "",
+  footer: "מחסן – ניר צבי, איתן 46 (נובק) / טלפון – 08-6827380 / פקס – 153-8-6827380",
+  email: "Info@Meditrade-intl.com",
+  minRows: 3, // מספר שורות מינימלי בטבלה (שורות ריקות נשארות כמו בדף המקורי)
+};
+
+// קטלוג מוצרים שדורשים מרשם.
+// id – מזהה קצר (משמש בקישור מוכן מראש), he – שם בעברית לחיפוש, rx – הטקסט שיופיע במרשם,
+// qty – כמות ברירת מחדל, note – הערה ברירת מחדל
+const CATALOG = [
+  { id: "emla",   he: "משחת אלחוש (לידוקאין + פרילוקאין)", rx: "Lidocaine 18% + Prilocaine 5% ointment", qty: "100G*1", note: "פקק אדום בקופסה" },
+  { id: "lido",   he: "לידוקאין קרפולות",                     rx: "Lidocaine 2% 1:100000",                 qty: "1",      note: "" },
+  { id: "mepi",   he: "מפיבקאין קרפולות (ללא אדרנלין)",       rx: "Mepivacaine 3% ללא אדרנלין",           qty: "50amp*2", note: "" },
+  { id: "bicarb", he: "סודיום ביקרבונט",                      rx: "Sodium Bicarbonate 8.4% 100ml",         qty: "1",      note: "" },
+];
+/* ========================================================= */
+
+const $ = (id) => document.getElementById(id);
+const itemsEl = $("items");
+const OTHER = "__other";
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function addItem(pre = {}) {
+  const div = document.createElement("div");
+  div.className = "item";
+  div.innerHTML = `
+    <button class="remove" type="button" title="הסרה">×</button>
+    <label>מוצר</label>
+    <select class="prod">
+      <option value="">— בחרו מוצר —</option>
+      ${CATALOG.map((p) => `<option value="${p.id}">${esc(p.he)} — ${esc(p.rx)}</option>`).join("")}
+      <option value="${OTHER}">מוצר אחר…</option>
+    </select>
+    <input class="custom" placeholder="שם המוצר כפי שיופיע במרשם" style="display:none;margin-top:6px">
+    <div class="row2">
+      <div><label>כמות</label><input class="qty"></div>
+      <div><label>הערות</label><input class="note"></div>
+    </div>`;
+  const sel = div.querySelector(".prod"), custom = div.querySelector(".custom"),
+        qty = div.querySelector(".qty"), note = div.querySelector(".note");
+
+  sel.addEventListener("change", () => {
+    const p = CATALOG.find((x) => x.id === sel.value);
+    custom.style.display = sel.value === OTHER ? "" : "none";
+    if (p) { qty.value = p.qty; note.value = p.note; }
+    render();
+  });
+  div.querySelector(".remove").addEventListener("click", () => { div.remove(); render(); });
+  [custom, qty, note].forEach((el) => el.addEventListener("input", render));
+
+  if (pre.id) {
+    const known = CATALOG.some((p) => p.id === pre.id);
+    sel.value = known ? pre.id : OTHER;
+    sel.dispatchEvent(new Event("change"));
+    if (!known) custom.value = pre.id;
+    if (pre.qty) qty.value = pre.qty;
+  }
+  itemsEl.appendChild(div);
+  render();
+}
+
+function getItems() {
+  return [...itemsEl.querySelectorAll(".item")].map((d) => {
+    const v = d.querySelector(".prod").value;
+    const p = CATALOG.find((x) => x.id === v);
+    const name = v === OTHER ? d.querySelector(".custom").value.trim() : p ? p.rx : "";
+    return { id: v, name, qty: d.querySelector(".qty").value.trim(), note: d.querySelector(".note").value.trim() };
+  }).filter((i) => i.name);
+}
+
+function fmtDate(v) {
+  if (!v) return "";
+  const [y, m, d] = v.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function render() {
+  $("pName").textContent = $("docName").value;
+  $("pLicense").textContent = $("docLicense").value;
+  $("pId").textContent = $("docId").value;
+  $("pDate").textContent = fmtDate($("date").value);
+
+  const items = getItems();
+  const rows = items.map((i) =>
+    `<tr><td class="prod">${esc(i.name)}</td><td>${esc(i.qty)}</td><td>${esc(i.note)}</td></tr>`);
+  while (rows.length < CONFIG.minRows) rows.push("<tr><td>&nbsp;</td><td></td><td></td></tr>");
+  $("pRows").innerHTML = rows.join("");
+  $("err").textContent = "";
+}
+
+function validate() {
+  const missing = [];
+  if (!$("docName").value.trim()) missing.push("שם הרופא");
+  if (!$("docLicense").value.trim()) missing.push("מס' רישיון");
+  if (!$("docId").value.trim()) missing.push("תעודת זהות");
+  if (!getItems().length) missing.push("לפחות מוצר אחד");
+  if (missing.length) { $("err").textContent = "חסר: " + missing.join(", "); return false; }
+  return true;
+}
+
+// מספר אסמכתא קצר, כדי שיהיה קל להתאים בין ההודעה בוואטסאפ לדף החתום
+const REF = "RX-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") + "-" +
+            Math.random().toString(36).slice(2, 6).toUpperCase();
+
+function waText() {
+  const lines = [
+    `שלום, מצורפת הזמנה למרשם (${REF})`,
+    `רופא/ה: ${$("docName").value}`,
+    `מס' רישיון: ${$("docLicense").value}`,
+    "",
+    ...getItems().map((i) => `• ${i.name} — כמות: ${i.qty || "-"}${i.note ? " (" + i.note + ")" : ""}`),
+    "",
+    "המרשם החתום יישלח בהמשך.",
+  ];
+  return lines.join("\n");
+}
+
+$("print").addEventListener("click", () => { if (validate()) window.print(); });
+$("wa").addEventListener("click", () => {
+  if (!validate()) return;
+  const base = CONFIG.whatsapp ? `https://wa.me/${CONFIG.whatsapp}` : "https://wa.me/";
+  window.open(`${base}?text=${encodeURIComponent(waText())}`, "_blank");
+});
+$("addItem").addEventListener("click", () => addItem());
+["docName", "docLicense", "docId", "date"].forEach((id) => $(id).addEventListener("input", render));
+
+// פוטר
+$("pFooter").innerHTML = `${esc(CONFIG.footer)}<br><a href="mailto:${esc(CONFIG.email)}">${esc(CONFIG.email)}</a>`;
+$("pRef").textContent = REF;
+
+// תאריך היום כברירת מחדל
+$("date").value = new Date().toISOString().slice(0, 10);
+
+// קישור מוכן מראש: index.html?p=lido:2,bicarb:1  (מוצר:כמות, מופרד בפסיקים)
+const pre = new URLSearchParams(location.search).get("p");
+if (pre) {
+  pre.split(",").forEach((tok) => {
+    const [id, qty] = tok.split(":");
+    if (id) addItem({ id: id.trim(), qty: qty && qty.trim() });
+  });
+} else {
+  addItem();
+}
+render();
+</script>
+</body>
+</html>
