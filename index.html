@@ -91,6 +91,23 @@
   .done .okmsg { color: var(--ok); font-weight: 600; margin-bottom: 10px; }
   .done ol { margin: 12px 0; padding-inline-start: 20px; line-height: 1.7; font-size: 14px; }
 
+  /* --- חלון וידוא לפני הפקה --- */
+  .review { position: fixed; inset: 0; z-index: 100; background: rgba(20,12,30,.55); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .review[hidden] { display: none; }
+  .review-box { background: #fff; border-radius: 14px; width: 100%; max-width: 460px; max-height: 90vh; overflow: auto; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+  .review-box h3 { margin: 0 0 6px; color: var(--brand); font-size: 18px; }
+  .rv-lead { margin: 0 0 12px; font-size: 15px; }
+  .rv-items { list-style: none; margin: 0 0 14px; padding: 0; display: grid; gap: 8px; }
+  .rv-items li { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+  .rv-name { font-weight: 600; line-height: 1.35; }
+  .rv-name small { display: block; font-weight: normal; color: var(--muted); font-size: 12px; }
+  .rv-qty { text-align: center; background: var(--brand-light); border-radius: 8px; padding: 6px 10px; min-width: 70px; }
+  .rv-qty b { display: block; font-size: 22px; color: var(--brand); line-height: 1.1; }
+  .rv-qty span { font-size: 11px; color: var(--muted); }
+  .rv-note { grid-column: 1 / -1; font-size: 13px; color: var(--muted); }
+  .rv-doctor { font-size: 13px; color: var(--muted); margin-bottom: 14px; line-height: 1.6; }
+  .rv-doctor span { color: var(--ink); }
+
   /* ===================== דף המרשם (A4) ===================== */
   .preview-title { font-size: 13px; color: var(--muted); margin: 0 0 6px; }
   .preview-wrap { overflow: hidden; }
@@ -235,6 +252,19 @@
   </div>
 </main>
 
+<div class="review" id="review" hidden role="dialog" aria-modal="true" aria-labelledby="rvTitle">
+  <div class="review-box">
+    <h3 id="rvTitle">בדיקה אחרונה לפני ההפקה</h3>
+    <p class="rv-lead">אנא ודאו שהמוצרים <b>והכמויות</b> נכונים:</p>
+    <ul class="rv-items" id="rvItems"></ul>
+    <div class="rv-doctor" id="rvDoctor"></div>
+    <div class="stack">
+      <button class="btn primary" id="rvOk" type="button">✔ הכול נכון – הפקת המרשם</button>
+      <button class="btn" id="rvBack" type="button">✏️ חזרה לתיקון</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* =========================================================
    הגדרות – זה החלק שצריך לערוך
@@ -345,6 +375,8 @@ function addItem(pre = {}) {
       chosen.textContent = ""; unit.textContent = "";
     }
     opts.hidden = true;
+    // סוגר את המקלדת בטלפון מיד אחרי הבחירה
+    if (document.activeElement === search) search.blur();
     changed();
   }
 
@@ -519,8 +551,32 @@ function fileName() {
   return `מרשם-מדי-טרייד-${name || "רופא"}-${REF}.pdf`;
 }
 
-$("make").addEventListener("click", async () => {
-  if (!validate()) return;
+/* ---------- וידוא לפני הפקה ---------- */
+function openReview() {
+  const items = getItems();
+  $("rvDoctor").innerHTML =
+    `<div><span>רופא/ה:</span> ${esc($("docName").value.trim())}</div>` +
+    `<div><span>מס' רישיון:</span> ${esc($("docLicense").value.trim())}</div>` +
+    `<div><span>ת.ז.:</span> ${esc($("docId").value.trim())}</div>`;
+  $("rvItems").innerHTML = items.map((i) => `
+    <li>
+      <div class="rv-name">${esc(i.label)}${i.name !== i.label ? `<small><bdi>${esc(i.name)}</bdi></small>` : ""}</div>
+      <div class="rv-qty"><b>${i.n}</b>${i.unit ? `<span>× ${esc(i.unit)}</span>` : ""}</div>
+      ${i.note ? `<div class="rv-note">הערה: ${esc(i.note)}</div>` : ""}
+    </li>`).join("");
+  $("review").hidden = false;
+  document.body.style.overflow = "hidden";
+  $("rvOk").focus();
+}
+function closeReview() { $("review").hidden = true; document.body.style.overflow = ""; }
+$("rvBack").addEventListener("click", closeReview);
+$("review").addEventListener("click", (e) => { if (e.target === $("review")) closeReview(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("review").hidden) closeReview(); });
+
+$("make").addEventListener("click", () => { if (validate()) openReview(); });
+
+$("rvOk").addEventListener("click", async () => {
+  closeReview();
   saveDoctor();
   const btn = $("make"); btn.disabled = true; btn.textContent = "מכין את הקובץ…";
   try {
