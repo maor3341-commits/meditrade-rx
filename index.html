@@ -202,7 +202,8 @@
       <div class="err" id="err"></div>
 
       <div class="done" id="done" hidden>
-        <div class="okmsg">✅ המרשם מוכן</div>
+        <div class="okmsg">✅ המרשם הופק</div>
+        <div class="hint" style="margin:-4px 0 12px">צריך לתקן משהו? פשוט משנים את הפרטים למעלה ומפיקים מחדש.</div>
         <div class="stack">
           <button class="btn primary" id="share" type="button">⬇️ הורדת ה-PDF</button>
           <button class="btn" id="print" type="button">🖨️ הדפסה ישירה</button>
@@ -473,7 +474,7 @@ function changed() {
   render();
   $("err").textContent = "";
   // כל שינוי אחרי ההפקה מבטל את ה-PDF הישן, כדי שלא יישלח דף לא מעודכן
-  if (pdfFile) { pdfFile = null; $("done").hidden = true; }
+  if (pdfFile) { pdfFile = null; $("done").hidden = true; $("make").hidden = false; }
 }
 
 function fitPreview() {
@@ -585,6 +586,7 @@ $("rvOk").addEventListener("click", async () => {
     const canShare = navigator.canShare && navigator.canShare({ files: [pdfFile] });
     $("share").textContent = canShare ? "📤 שיתוף / שמירה של ה-PDF" : "⬇️ הורדת ה-PDF";
     $("done").hidden = false;
+    $("make").hidden = true; // כבר הופק – הכפתור חוזר רק אם משנים משהו
     $("done").scrollIntoView({ behavior: "smooth", block: "nearest" });
   } catch (e) {
     console.error(e);
