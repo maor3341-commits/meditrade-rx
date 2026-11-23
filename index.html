@@ -540,9 +540,10 @@ async function makePdf() {
   host.style.cssText = "position:fixed;top:0;left:-3000px;direction:rtl;";
   host.appendChild(clone); document.body.appendChild(host);
   try {
-    const canvas = await html2canvas(clone, { scale: 2, backgroundColor: "#ffffff", useCORS: true });
-    const pdf = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
-    pdf.addImage(canvas.toDataURL("image/jpeg", 0.92), "JPEG", 0, 0, 210, 297);
+    // scale 4 ≈ 384dpi; PNG (בלי דחיסה מאבדת) כדי שהטקסט יהיה חד
+    const canvas = await html2canvas(clone, { scale: 4, backgroundColor: "#ffffff", useCORS: true });
+    const pdf = new window.jspdf.jsPDF({ unit: "mm", format: "a4", compress: true });
+    pdf.addImage(canvas, "PNG", 0, 0, 210, 297, undefined, "FAST");
     return pdf.output("blob");
   } finally { host.remove(); }
 }
