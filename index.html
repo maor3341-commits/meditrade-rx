@@ -579,6 +579,8 @@ $("make").addEventListener("click", () => { if (validate()) openReview(); });
 $("rvOk").addEventListener("click", async () => {
   closeReview();
   saveDoctor();
+  REF = newRef(); // מספר חדש לכל מרשם שמופק
+  $("pRef").textContent = REF;
   const btn = $("make"); btn.disabled = true; btn.textContent = "מכין את הקובץ…";
   try {
     const blob = await makePdf();
@@ -614,8 +616,19 @@ $("share").addEventListener("click", async () => {
 $("print").addEventListener("click", () => window.print());
 
 /* ---------- וואטסאפ ---------- */
-const REF = "RX-" + new Date().toISOString().slice(2, 10).replace(/-/g, "") + "-" +
-            Math.random().toString(36).slice(2, 6).toUpperCase();
+// תאריך מקומי (שעון המכשיר – בישראל שעון ישראל) בפורמט YYYY-MM-DD
+function localISODate(d = new Date()) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+// מספר אסמכתא: RX-תאריך-4 תווים אקראיים. נוצר מחדש בכל הפקה.
+function newRef() {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // בלי O/0/I/1 שמתבלבלים
+  let r = "";
+  for (let i = 0; i < 4; i++) r += chars[Math.floor(Math.random() * chars.length)];
+  return "RX-" + localISODate().slice(2).replace(/-/g, "") + "-" + r;
+}
+let REF = newRef();
 
 function waText() {
   return [
@@ -651,7 +664,7 @@ $("docId").addEventListener("blur", () => checkId(true));
 
 $("pFooter").innerHTML = `${esc(CONFIG.footer)}<br><a href="mailto:${esc(CONFIG.email)}">${esc(CONFIG.email)}</a>`;
 $("pRef").textContent = REF;
-$("date").value = new Date().toISOString().slice(0, 10);
+$("date").value = localISODate();
 loadDoctor();
 
 const pre = new URLSearchParams(location.search).get("p");
