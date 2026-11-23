@@ -570,8 +570,19 @@ function waText() {
     "מצרף/ת את המרשם החתום.",
   ].join("\n");
 }
+// בטלפון: פותחים ישירות את אפליקציית וואטסאפ (whatsapp://). פתיחה של wa.me בלשונית חדשה
+// נתקעת לפעמים בדף של וואטסאפ ווב, בעיקר כשהקישור נפתח מתוך הדפדפן הפנימי של וואטסאפ.
+// אם האפליקציה לא נפתחה תוך שנייה וחצי – עוברים ל-wa.me באותו חלון.
+// במחשב: wa.me בלשונית חדשה (מציע את וואטסאפ דסקטופ או וואטסאפ ווב).
+const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+                 (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
 $("wa").addEventListener("click", () => {
-  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(waText())}`, "_blank");
+  const text = encodeURIComponent(waText());
+  const web = `https://wa.me/${CONFIG.whatsapp}?text=${text}`;
+  if (!isMobile) { window.open(web, "_blank"); return; }
+  const fallback = setTimeout(() => { if (!document.hidden) location.href = web; }, 1500);
+  document.addEventListener("visibilitychange", () => { if (document.hidden) clearTimeout(fallback); }, { once: true });
+  location.href = `whatsapp://send?phone=${CONFIG.whatsapp}&text=${text}`;
 });
 
 /* ---------- אתחול ---------- */
