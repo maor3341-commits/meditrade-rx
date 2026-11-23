@@ -196,7 +196,7 @@
           <li>מצלמים או סורקים את הדף החתום ושולחים לנו בוואטסאפ.</li>
         </ol>
         <button class="btn wa" id="wa" type="button">💬 שליחת ההזמנה למדי טרייד בוואטסאפ</button>
-        <div class="hint" id="waHint">נשלחים פרטי ההזמנה בכתב יחד עם קובץ ה-PDF.</div>
+        <div class="hint">ההודעה כוללת את פרטי ההזמנה ומספר אסמכתא. את הדף החתום מצרפים באותה שיחה.</div>
       </div>
     </section>
   </div>
@@ -567,29 +567,11 @@ function waText() {
     "",
     ...getItems().map((i) => `• ${i.label} — ${i.n}${i.unit ? " × " + i.unit : ""}${i.note ? " (" + i.note + ")" : ""}`),
     "",
-    "מצורף המרשם (PDF). הדף החתום יישלח לאחר החתימה.",
+    "מצרף/ת את המרשם החתום.",
   ].join("\n");
 }
-
-function canShareFile() {
-  return !!(pdfFile && navigator.canShare && navigator.canShare({ files: [pdfFile], text: "x" }));
-}
-
-// וואטסאפ לא מאפשר לצרף קובץ דרך קישור, לכן:
-//  בטלפון – פותחים את תפריט השיתוף עם הקובץ והטקסט יחד, והרופא בוחר את השיחה עם מדי טרייד.
-//           הטקסט גם מועתק ללוח, למקרה שוואטסאפ לא מצרף אותו (קורה באייפון).
-//  במחשב  – מורידים את הקובץ ופותחים את השיחה עם מדי טרייד עם הטקסט מוכן; גוררים את הקובץ לשיחה.
-$("wa").addEventListener("click", async () => {
-  const text = waText();
-  if (canShareFile()) {
-    try { navigator.clipboard && navigator.clipboard.writeText(text).catch(() => {}); } catch (e) {}
-    $("waHint").textContent = "בחרו בוואטסאפ את השיחה עם מדי טרייד. אם הטקסט לא הופיע עם הקובץ – הוא הועתק, פשוט הדביקו אותו.";
-    try { await navigator.share({ files: [pdfFile], text }); return; }
-    catch (e) { if (e.name === "AbortError") return; }
-  }
-  if (pdfFile) download(pdfFile);
-  $("waHint").textContent = "הקובץ ירד למחשב ונפתחה שיחה עם מדי טרייד עם פרטי ההזמנה. גררו את הקובץ לשיחה ושלחו.";
-  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(text)}`, "_blank");
+$("wa").addEventListener("click", () => {
+  window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(waText())}`, "_blank");
 });
 
 /* ---------- אתחול ---------- */
